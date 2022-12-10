@@ -62,3 +62,18 @@ $ ls
                            (println e)
                            e) (commands->data sample))
   )
+
+
+(defn dir-sum [sa data]
+  (reduce-kv (fn [a k v]
+               (+ a
+                  (if (map? v)
+                    (k (swap! sa assoc k (dir-sum sa v)))
+                    (+ v)))) 0 data))
+
+(comment
+  (let [sa (atom {})]
+    (dir-sum sa (commands->data sample))
+    sa)
+
+  )
