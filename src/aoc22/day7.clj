@@ -26,7 +26,7 @@ $ ls
 7214296 k")
 
 (defn commands->data [input]
-  (let [commands (str/split-lines sample)]
+  (let [commands (str/split-lines input)]
     (loop [data {(keyword "/") {}}
            path []
            [c & commands] commands]
@@ -64,16 +64,35 @@ $ ls
   )
 
 
-(defn dir-sum [sa data]
+(defn dir-sum [sa path data]
   (reduce-kv (fn [a k v]
                (+ a
                   (if (map? v)
-                    (k (swap! sa assoc k (dir-sum sa v)))
+                    (let [path' (conj path k)]
+                      (get (swap! sa assoc path' (dir-sum sa path' v)) path'))
                     (+ v)))) 0 data))
 
 (comment
   (let [sa (atom {})]
-    (dir-sum sa (commands->data sample))
-    sa)
+    (dir-sum sa [] (commands->data (slurp "resources/day7.txt")))
+    @sa
+    ;; 1
+    #_(->> @sa
+        vals
+        (filter #(<= % 100000))
+        (apply +))
+
+    #_(@sa [:/])
+    ;; 37072768
+
+    ;; available 28481047
+
+    ;; 2
+    (let [available (- 70000000 (@sa [:/]))]
+      (println "*" available)
+      (->> @sa
+        #_(filter (fn [[k _]] (= (count k) 2)))
+        (filter (fn [[_ v]] (>= (+ available v) 30000000)))
+        (sort-by second))))
 
   )
